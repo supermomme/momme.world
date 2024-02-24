@@ -2,11 +2,9 @@
 import { ref } from "vue";
 import CommandLine from "./components/CommandLine.vue";
 
-const commands = ref<{
-  command: string,
-  commandDetection: 'FULL' | 'BEGINS_WITH',
-  run: (args?: string) => string
-}[]>([
+const commandLine = ref<InstanceType<typeof CommandLine> | null>(null);
+
+const commands = ref<InstanceType<typeof CommandLine>["$props"]["commands"]>([
   { command: "hello", commandDetection: 'FULL', run: () => `Hello World! I'm Momme :)\n\nType "whoami" for more information about this human.\nGet to know me on socials with command "social"\nOr explore this cli with the "help" command\n\nThis website is still WIP. Don't expect much.\n\nHappy hacking :)` },
   { command: "whoami", commandDetection: 'FULL', run: () => `I am Momme\nI do IT stuff\nWork at codeanker\nFlying FPV-Drones\nExperimenting with nixos, kubernetes, vpn and more\nIf you want to know more about specific projects, try to run "project <name>". Maybe you get lucky :)` },
   { command: "social", commandDetection: 'FULL', run: () => `You can find me on\nInstagram: @supermommej\nGithub: supermomme\nMastodon: @momme@cybre.town\n\nI'm not very active on socials, but I try to share some insights and projects there. Feel free to follow me :)` },
@@ -34,12 +32,38 @@ const commands = ref<{
     if (args === 'help') return `Get more information about a specific command`
     return `I don't have a command called "${args}". Try to run "help" to get more information about the available commands.`
   }},
+  { command: "cat", commandDetection: 'FULL', run: () => `Meow!` },
+  { command: "dog", commandDetection: 'FULL', run: () => `Woof!` },
+  { command: "clear", commandDetection: 'FULL', run: () => {
+    commandLine.value?.clearHistory()
+    return null
+  }},
+  { command: "ls", commandDetection: 'FULL', run: () => `empty`},
+  { command: "time", commandDetection: 'FULL', run: () => new Date().toLocaleTimeString('de') },
+  { command: "date", commandDetection: 'FULL', run: () => new Date().toLocaleDateString('de') },
+  { command: "echo", commandDetection: 'BEGINS_WITH', run: (args) => {
+    return args || ''
+  }},
+  { command: "pwd", commandDetection: 'FULL', run: () => `world` },
+  { command: "sleep", commandDetection: 'BEGINS_WITH', run: async (args) => {
+    const time = parseInt(args || '')
+    if (isNaN(time)) return `Usage: sleep <ms>`
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(null)
+      }, time)
+    })
+    return null
+  } },
+  // { command: }
+  // { command: ""}
+  
 ]);
 
 </script>
 
 <template>
   <div class="w-full flex justify-center sm:px-6 sm:pt-8 h-[95vh]">
-    <CommandLine class="max-w-3xl w-full max-h-full min-h-80" :commands="commands" initalCommand="hello" />
+    <CommandLine ref="commandLine" class="max-w-3xl w-full max-h-full min-h-80" :commands="commands" initalCommand="hello" />
   </div>
 </template>

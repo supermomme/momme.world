@@ -6,13 +6,13 @@ const props = defineProps<{
   commands: {
     command: string,
     commandDetection: 'FULL' | 'BEGINS_WITH',
-    run: (args?: string) => string
+    run: (args?: string) => string|null|Promise<string|null>
   }[],
   initalCommand?: string
 }>()
 
 const commandInput = ref("");
-const speed = ref(25)
+const speed = ref(5)
 const commandInputRef = ref<HTMLInputElement | null>(null);
 const scrollRef = ref<HTMLDivElement | null>(null);
 
@@ -23,7 +23,7 @@ const defaultCommands = ref<{
 }[]>([
   { command: "setting speed", commandDetection: 'BEGINS_WITH', run: (args) => {
     const newSpeed = parseInt(args || 'help')
-    if (isNaN(newSpeed) || args === 'help') return '# Set the speed of the terminal text animation in MS. Default 25ms.\nUsage: setting speed <speed>'
+    if (isNaN(newSpeed) || args === 'help') return '# Set the speed of the terminal text animation in MS. Default 5ms.\nUsage: setting speed <speed>'
     speed.value = newSpeed
     return `Speed set to ${newSpeed}ms`
   }}
@@ -67,26 +67,28 @@ async function runCommand() {
   };
 
   const commandArgs = commandInput.value.replace(command.command, "").trim();
-  const fullResult = command.run(commandArgs)
   fullHistory.value.push({ command: command.command, args: commandArgs, result: "" });
-  await new Promise((resolve) => {
-    let interval: number;
-    const keyListener = onKeyDown('Enter', (e) => {
-      console.log(e.key)
-      clearInterval(interval);
-      fullHistory.value[fullHistory.value.length - 1].result = fullResult;
-      resolve(null);
-      keyListener()
-    })
-    interval = setInterval(() => {
-      fullHistory.value[fullHistory.value.length - 1].result += fullResult[fullHistory.value[fullHistory.value.length - 1].result.length];
-      if (fullHistory.value[fullHistory.value.length - 1].result.length === fullResult.length) {
+  const fullResult = await command.run(commandArgs)
+  if (fullResult !== null) {
+    await new Promise((resolve) => {
+      let interval: number;
+      const keyListener = onKeyDown('Enter', (e) => {
+        console.log(e.key)
         clearInterval(interval);
-        keyListener()
+        fullHistory.value[fullHistory.value.length - 1].result = fullResult;
         resolve(null);
-      }
-    }, speed.value);
-  })
+        keyListener()
+      })
+      interval = setInterval(() => {
+        fullHistory.value[fullHistory.value.length - 1].result += fullResult[fullHistory.value[fullHistory.value.length - 1].result.length];
+        if (fullHistory.value[fullHistory.value.length - 1].result.length === fullResult.length) {
+          clearInterval(interval);
+          keyListener()
+          resolve(null);
+        }
+      }, speed.value);
+    })
+  }
   commandInput.value = "";
   historyIndex.value = filteredHistory.value.length;
   commandRunning.value = false;
@@ -122,6 +124,12 @@ onMounted(() => {
   if (props.initalCommand) {
     commandInput.value = props.initalCommand;
     runCommand();
+  }
+})
+
+defineExpose({
+  clearHistory: () => {
+    fullHistory.value = [];
   }
 })
 </script>
