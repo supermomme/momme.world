@@ -7,7 +7,7 @@ const commands = ref<{
   commandDetection: 'FULL' | 'BEGINS_WITH',
   run: (args?: string) => string
 }[]>([
-  { command: "hello", commandDetection: 'FULL', run: () => `Hello World! I'm Momme :)\n\nType "whoami" for more information about this human.\nGet to know me on socials with command "social"\nOr explore this cli with the "help" command\n\nHappy hacking :)` },
+  { command: "hello", commandDetection: 'FULL', run: () => `Hello World! I'm Momme :)\n\nType "whoami" for more information about this human.\nGet to know me on socials with command "social"\nOr explore this cli with the "help" command\nThis website is still WIP. Don't expect much.\n\nHappy hacking :)` },
   { command: "whoami", commandDetection: 'FULL', run: () => `I am Momme\nI do IT stuff\nWork at codeanker\nFlying FPV-Drones\nExperimenting with nixos, kubernetes, vpn and more\nIf you want to know more about specific projects, try to run "project <name>". Maybe you get lucky :)` },
   { command: "social", commandDetection: 'FULL', run: () => `You can find me on\nInstagram: @supermommej\nGithub: supermomme\nMastodon: @momme@cybre.town\n\nI'm not very active on socials, but I try to share some insights and projects there. Feel free to follow me :)` },
   { command: "project", commandDetection: 'BEGINS_WITH', run: (args) => {
